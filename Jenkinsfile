@@ -42,10 +42,32 @@ pipeline {
 		    sh 'docker images secure-app'
 		}
 	    }
+
+	    stage("Image Scan (Trivy)') {
+		steps {
+		    sh '''
+			docker run --rm \
+			  -v /var/run/docker.sock:/var/run/docker.sock \
+			  -v trivy-cache:/root/.cache \
+			  --volumes-from jenkins -w "$WORKSPACE" \
+			  aquasec/trivy:latest image
+			  --scanners vuln \
+			  --severity HIGH, CRITICAL --ignore-unfixed \
+			  --format json --output reports/trivy.json $IMAGE
+			docker run --rm \
+			  -v /var/run/docker.sock:/var/run/docker.sock \
+			  -v trivy-cache:/root/.cache \
+			  --volumes-from jenkins -w "$WORKSPACE" \
+			  aquasec/trivy:latest image \
+			  --scanners vuln \
+			  --severity HIGH, CRITICAL --ignore-unfixed \
+			  --exit-code 1 $IMAGE
+		   '''
 	 }
 	
 	 post {
 	     success { echo "Pipeline passed. Image built: ${IMAGE}" }
 	     failure { echo "Pipeline failed. Check the stage logs above." }
+	     always { archiveArtifacts artifacts: 'reports/*', allowEmptyArchive: true }
 	 }
 }
