@@ -43,7 +43,7 @@ pipeline {
 		}
 	    }
 
-	    stage("Image Scan (Trivy)') {
+	    stage('Image Scan (Trivy)') {
 		steps {
 		    sh '''
 			docker run --rm \
