@@ -9,9 +9,27 @@ pipeline {
 	    stage('Checkout') {
 		steps {
 		    checkout scm
+		    sh 'rm -rf reports && mkdir reports'
 		}
 	    }
 	   
+	    stage('Secret Scan (Gitleaks)') {
+		steps {
+		    sh '''
+			docker run --rm --volumes-from jenkins \
+			  -u "$(id -u):$(id -g)" -w "$WORKSPACE" \
+			  zricethezav/gitleaks:latest detect --source . --no-git --redact -v \
+			  --report-format json --report-path reports/gitleaks.json
+	   	    '''
+		}
+	    }
+
+            stage('Dockerfile Lint (Hadolint)') {
+		steps {
+	            sh 'docker run --rm -i hadolint/hadolint hadolint --failure-threshold warning - < Dockerfile'
+		}
+	    }
+
 	    stage('Unit Tests') {
 		steps {
 		    sh 'docker build --target test -t secure-app:test .'
