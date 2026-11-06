@@ -1,5 +1,6 @@
-FROM python:3.12-slim AS base
+FROM python:latest AS base
 WORKDIR /app
+RUN apt-get update && apt-get install -y curl
 ENV PYTHONDONTWRITEBYCODE=1\
     PYTHONUNBUFFERED=1
 COPY requirements.txt .
