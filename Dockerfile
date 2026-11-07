@@ -12,6 +12,10 @@ COPY . .
 RUN pytest -q
 
 FROM base AS final
+# hadolint ignore=DL3008
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends --only-upgrade zlib1g \
+ && rm -rf /var/lib/apt/lists/*
 RUN useradd --create-home --uid 10001 appuser
 COPY app.py .
 USER appuser

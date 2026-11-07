@@ -38,7 +38,7 @@ pipeline {
 
         stage('Build Image') {
             steps {
-                sh 'docker build -t $IMAGE .'
+                sh 'docker build --pull -t $IMAGE .'
                 sh 'docker images secure-app'
             }
         }
