@@ -66,6 +66,24 @@ pipeline {
                 '''
             }
         }
+
+        stage('Push Image') {
+            when { branch 'main' }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub',
+                                                  usernameVariable: 'DH_USER',
+                                                  passwordVariable: 'DH_PASS')]) {
+                    sh '''
+                        echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin
+                        docker tag $IMAGE $DH_USER/secure-app:$BUILD_NUMBER
+                        docker tag $IMAGE $DH_USER/secure-app:latest
+                        docker push $DH_USER/secure-app:$BUILD_NUMBER
+                        docker push $DH_USER/secure-app:latest
+                        docker logout
+                    '''
+                }
+            }
+        }
     }
 
     post {
