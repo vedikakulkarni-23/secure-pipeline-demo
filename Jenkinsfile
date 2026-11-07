@@ -67,6 +67,22 @@ pipeline {
             }
         }
 
+        stage('Code Quality (SonarQube)') {
+            steps {
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    sh '''
+                        docker run --rm --network jenkins_default \
+                          --volumes-from jenkins -w "$WORKSPACE" \
+                          -e SONAR_HOST_URL=http://sonarqube:9000 \
+                          -e SONAR_TOKEN="$SONAR_TOKEN" \
+                          sonarsource/sonar-scanner-cli:latest \
+                          -Dsonar.qualitygate.wait=true \
+                          -Dsonar.qualitygate.timeout=300
+                    '''
+                }
+            }
+        }
+
         stage('Push Image') {
             when { branch 'main' }
             steps {
